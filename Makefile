@@ -1,57 +1,76 @@
+# STATIC	| SHARED
+PACO_ERPG_LIBTYPE		?= STATIC
 
-# Build the engine as a library
-# TODO: Add more doc regarding options (copy from raylib)
-PACO_ERPG_LIBTYPE		?= SHARED
+# RELEASE	| DEBUG
 PACO_ERPG_BUILD_MODE 	?= RELEASE
-PACO_ERPG_LIB_NAME		?= libpacorpgengine
+
+# lib<name>.<ext>
+PACO_ERPG_LIB_NAME		?= pacorpgengine
+
+# Where to save output
 PACO_ERPG_RELEASE_PATH 	?= bin
 
+# OUT -----------------------------------------------------------------------------------------
+LIB_EXT	= .a
+ifeq ($(PACO_ERPG_LIBTYPE), SHARED)
+	CFLAGS = .so
+endif
 
+TARGET	= $(PACO_ERPG_RELEASE_PATH)/lib$(PACO_ERPG_LIB_NAME)$(LIB_EXT)
+
+# Set up compiler and flags
+#----------------------------------------------------------------------------------------------
 CC			= gcc
-SRC_DIR		= src
-BUILD_DIR	= build
-BIN_DIR		= bin
-
-TARGET	= $(BIN_DIR)/$(PACO_ERPG_LIB_NAME)
-
-CFLAGS = -Wall -Wextra
+AR			= ar
+CFLAGS 		= -std=c23 -Wall -Wextra
 ifeq ($(PACO_ERPG_LIBTYPE), SHARED)
 	CFLAGS += -fPIC
 endif
+
+ifeq ($(PACO_ERPG_BUILD_MODE), DEBUG)
+	CFLAGS += -g
+endif
+
 CFLAGS += $(CUSTOM_CFLAGS)
 
-INCLUDE_PATHS = -I. include $(EXTRA_INCLUDE_PATHS)
-LDFLAGS = $(CUSTOM_LDFLAGS) -L. -L$(PACO_ERPG_RELEASE_PATH) -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
-ifeq ($(PACO_ERPG_LIBTYPE), SHARED)
-	LDFLAGS += -shared
-endif
+INCLUDE_PATHS 	= -I include $(EXTRA_INCLUDE_PATHS)
+
+LDFLAGS_RAYLIB 	= -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+LDFLAGS = $(CUSTOM_LDFLAGS) $(LDFLAGS_RAYLIB)
+
+# Sources and output
+#----------------------------------------------------------------------------------------------
+SRC_DIR		= src
+BUILD_DIR	= build
 
 SOURCES	= $(shell find $(SRC_DIR) -name '*.c')
 OBJECTS	= $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SOURCES))
 
+# Dependency generation
 CFLAGS 	+= -MMD -MP
 DEPS 	:= $(OBJECTS:.o=.d)
 
-.PHONY: all run clean debug
-
+# Define processes to execute
+#------------------------------------------------------------------------------------------------
+.PHONY: all run clean
 all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
-	@mkdir -p $(BIN_DIR)
+	@mkdir -p $(PACO_ERPG_RELEASE_PATH)
+ifeq ($(PACO_ERPG_LIBTYPE), SHARED)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
-	@echo "Built target: $@"
+	@echo " Built dynamic library: $@"
+else
+	$(AR) rcs $(TARGET) $(OBJS)
+	@echo " Built static library: $@"
+endif
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(INCLUDE_PATHS) -c $< -o $@
 
-debug:
-	@$(MAKE) clean
-	CFLAGS += -g
-	@$(MAKE) all
-
 clean:
-	@echo " Cleaning..."
-	@rm -rf $(BUILD_DIR) $(BIN_DIR)
+	@rm -rf $(BUILD_DIR)/* $(PACO_ERPG_RELEASE_PATH)/*
+	@echo " Removed all generated files."
 
 -include $(DEPS)
