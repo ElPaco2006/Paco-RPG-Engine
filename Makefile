@@ -59,10 +59,10 @@ $(TARGET): $(OBJECTS)
 	@mkdir -p $(PACO_ERPG_RELEASE_PATH)
 ifeq ($(PACO_ERPG_LIBTYPE), SHARED)
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $(TARGET)
-	@echo " Built dynamic library: $@"
+	@echo "---Built dynamic library: $@---"
 else
 	$(AR) rcs $(TARGET) $(OBJS)
-	@echo " Built static library: $@"
+	@echo "---Built static library: $@---"
 endif
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
@@ -70,7 +70,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) $(INCLUDE_PATHS) -c $< -o $@
 
 clean:
-	@rm -rf $(BUILD_DIR)/* $(PACO_ERPG_RELEASE_PATH)/*
-	@echo " Removed all generated files."
+	@rm -f $(TARGET) $(OBJECTS) $(DEPS)
+	@echo "---Removed all generated files.---"
 
 -include $(DEPS)
