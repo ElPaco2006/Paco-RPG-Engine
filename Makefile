@@ -30,13 +30,15 @@ endif
 ifeq ($(PACO_ERPG_BUILD_MODE), DEBUG)
 	CFLAGS += -g
 endif
-
 CFLAGS += $(CUSTOM_CFLAGS)
 
 INCLUDE_PATHS 	= -I include $(EXTRA_INCLUDE_PATHS)
 
 LDFLAGS_RAYLIB 	= -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
 LDFLAGS = $(CUSTOM_LDFLAGS) $(LDFLAGS_RAYLIB)
+ifeq ($(PACO_ERPG_LIBTYPE), SHARED)
+	LDFLAGS += -shared
+endif
 
 # Sources and output
 #----------------------------------------------------------------------------------------------
