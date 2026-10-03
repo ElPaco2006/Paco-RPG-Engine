@@ -13,7 +13,7 @@ PACO_ERPG_RELEASE_PATH 	?= bin
 # OUT -----------------------------------------------------------------------------------------
 LIB_EXT	= .a
 ifeq ($(PACO_ERPG_LIBTYPE), SHARED)
-	CFLAGS = .so
+	LIB_EXT = .so
 endif
 
 TARGET	= $(PACO_ERPG_RELEASE_PATH)/lib$(PACO_ERPG_LIB_NAME)$(LIB_EXT)
